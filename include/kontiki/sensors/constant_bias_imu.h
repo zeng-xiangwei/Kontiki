@@ -86,6 +86,7 @@ class ConstantBiasImuEntity : public BasicImuEntity<ViewTemplate, MetaType, Stor
 
   bool LockGyroscopeBias(bool lock) {
     gyro_bias_locked_ = lock;
+    return lock;
   }
 
   bool AccelerometerBiasIsLocked() const {
@@ -94,6 +95,7 @@ class ConstantBiasImuEntity : public BasicImuEntity<ViewTemplate, MetaType, Stor
 
   bool LockAccelerometerBias(bool lock) {
     acc_bias_locked_ = lock;
+    return lock;
   }
 
 
