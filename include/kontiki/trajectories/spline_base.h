@@ -324,6 +324,14 @@ struct SplineFactory {
     entity::ParameterInfo<double> Parameter(size_t i) {
       return this->pstore_->Parameter(i);
     }
+
+    // 修改控制点
+    void SetContralPoint(size_t i, const ControlPointType& cp) {
+      // 1) Validate the control point
+      this->control_point_info_.Validate(cp);
+      // 2) set its value
+      this->MutableControlPoint(i) = cp;
+    }
   };
 };
 
@@ -369,6 +377,30 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
     while ((this->NumKnots() < 4) || (this->MaxTime() < t)) {
       this->AppendKnot(fill_value);
     }
+  }
+
+  bool SetContralPoint(double t, const ControlPointType& fill_value) {
+    // 找到该时间对应的第一个控制点序号
+    int i1;
+    double u_notused;
+    segment_entity_->CalculateIndexAndInterpolationAmount(t, i1, u_notused);
+    // 为四个中的第二个控制点赋值
+    segment_entity_->SetContralPoint(i1 + 1, fill_value);
+    // std::cout << "contral point " << i1+1 << std::endl;
+    return true;
+  }
+
+  // 为第一个控制点赋值
+  bool SetFirstContralPoint(const ControlPointType& fill_value) {
+    segment_entity_->SetContralPoint(0, fill_value);
+    return true;
+  }
+
+  // 为最后一个控制点赋值
+  bool SetEndContralPoint(const ControlPointType& fill_value) {
+    segment_entity_->SetContralPoint(segment_entity_->NumKnots() - 1, fill_value);
+    // std::cout << "end contral point " << segment_entity_->NumKnots() - 1 << std::endl;
+    return true;
   }
 
   void AddToProblem(ceres::Problem &problem,
