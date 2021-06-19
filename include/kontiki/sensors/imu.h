@@ -112,7 +112,9 @@ class ImuEntity : public SensorEntity<ViewTemplate, MetaType, StoreType> {
   using Base = SensorEntity<ViewTemplate, MetaType, StoreType>;
  public:
    ImuEntity(double g_r, double g_p) :
-       Base() {
+       Base(),
+       gravity_pitch_locked_(false),
+       gravity_roll_locked_(false) {
        // Define parameters
        this->pstore_->AddParameter(1);
 
@@ -125,6 +127,24 @@ class ImuEntity : public SensorEntity<ViewTemplate, MetaType, StoreType> {
 
    ImuEntity() :
        ImuEntity(0.01, 0.01) {}
+   
+    bool GravityPitchIsLocked() const {
+      return gravity_pitch_locked_;
+    }
+
+    bool LockGravityPitch(bool lock) {
+      gravity_pitch_locked_ = lock;
+      return lock;
+    }
+
+    bool GravityRollIsLocked() const {
+      return gravity_roll_locked_;
+    }
+
+    bool LockGravityRoll(bool lock) {
+      gravity_roll_locked_ = lock;
+      return lock;
+    }
 
    void AddToProblem(ceres::Problem &problem,
                      time_init_t times,
@@ -136,11 +156,20 @@ class ImuEntity : public SensorEntity<ViewTemplate, MetaType, StoreType> {
      problem.AddParameterBlock(p_gravity_roll.data, p_gravity_roll.size, p_gravity_roll.parameterization);
      parameters.push_back(p_gravity_roll);
 
+     if (gravity_roll_locked_)
+      problem.SetParameterBlockConstant(p_gravity_roll.data);
+
      auto p_gravity_pitch = this->pstore_->Parameter(this->PARAM_GRAVITY_PITCH);
      problem.AddParameterBlock(p_gravity_pitch.data, p_gravity_pitch.size, p_gravity_pitch.parameterization);
      parameters.push_back(p_gravity_pitch);
+
+     if (gravity_pitch_locked_)
+      problem.SetParameterBlockConstant(p_gravity_pitch.data);
    }
 
+ protected:
+  bool gravity_pitch_locked_;
+  bool gravity_roll_locked_;
 
 };
 
