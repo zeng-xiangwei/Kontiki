@@ -320,6 +320,16 @@ struct SplineFactory {
       this->meta_.n += 1;
     }
 
+    void DeleteMinKnot() {
+      // 删除第一个控制点
+      this->pstore_->DeleteFrontParameter();
+      // 更新 t0
+      this->meta_.t0 += this->meta_.dt;
+      // 更新控制点数目
+      this->meta_.n -= 1;
+      std::cout << "pstore_->size() = " << pstore_->Size() << " this->meta_.n = " << this->meta_.n << std::endl;
+    }
+
     // Allow the owning Spline Entity to access parameters
     entity::ParameterInfo<double> Parameter(size_t i) {
       return this->pstore_->Parameter(i);
@@ -379,6 +389,18 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
     }
   }
 
+  bool DeletePreviousKnot(double t) {
+    if (t > this->MaxTime()) {
+      std::cout << "in spline_base : t = " << t << " > MaxTime = " << this->MaxTime() << std::endl;
+      return false;
+    }
+    std::cout << "in spline_base : dt = " << this->dt() << " t0 = " << this->t0() << " t = " << t << std::endl;
+    while (this->t0() + this->dt() <= t) {
+      segment_entity_->DeleteMinKnot();
+      std::cout << "in spline_base : t0 = " << this->t0() << std::endl;
+    }
+  }
+
   bool SetContralPoint(double t, const ControlPointType& fill_value) {
     // 找到该时间对应的第一个控制点序号
     int i1;
@@ -401,6 +423,11 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
     segment_entity_->SetContralPoint(segment_entity_->NumKnots() - 1, fill_value);
     // std::cout << "end contral point " << segment_entity_->NumKnots() - 1 << std::endl;
     return true;
+  }
+
+  // 获取最后一个控制点的值
+  ControlPointType GetEndContralPoint() {
+    return segment_entity_->ControlPoint(segment_entity_->NumKnots() - 1);
   }
 
   void AddToProblem(ceres::Problem &problem,

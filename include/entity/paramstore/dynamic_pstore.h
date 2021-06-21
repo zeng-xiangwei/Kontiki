@@ -29,6 +29,13 @@ class DynamicParameterStore : public ParameterStore<T> {
     return new_idx;
   }
 
+  // 删除第一个控制点
+  bool DeleteFrontParameter() {
+    delete[] parameters_.at(0).data;
+    parameters_.erase(parameters_.begin());
+    return true;
+  }
+
   entity::ParameterInfo<T> Parameter(size_t i) const override {
     return parameters_.at(i);
   }
