@@ -22,6 +22,9 @@ class EmptyParameterStore : public ParameterStore<T> {
   size_t AddParameter(size_t ndims, ceres::LocalParameterization *parameterization) override {
     throw std::runtime_error("Not supported by EmptyParameterStore");
   }
+  bool DeleteFrontParameter() override {
+    throw std::runtime_error("Not supported by EmptyParameterStore");
+  }
   ParameterInfo<T> Parameter(size_t i) const override {
     throw std::runtime_error("Not supported by EmptyParameterStore");
   }

@@ -28,6 +28,10 @@ struct PointerParameterStore : public ParameterStore<T> {
     throw std::runtime_error("PointerParameterStore can not add parameters");
   }
 
+  bool DeleteFrontParameter() override {
+    throw std::runtime_error("PointerParameterStore can not delete parameters");
+  }
+
   ParameterInfo<T> Parameter(size_t i) const override {
     throw std::runtime_error("PointerParameterStore can not return ParameterInfo data");
   }

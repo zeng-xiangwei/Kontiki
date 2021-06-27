@@ -40,6 +40,7 @@ struct ParameterStore {
   virtual size_t Size() const = 0;
   virtual ParameterStore<T>* Slice(size_t offset, size_t length) const = 0;
   virtual ParameterInfo<T> Parameter(size_t i) const = 0;
+  virtual bool DeleteFrontParameter() = 0;
 };
 
 } // namespace entity

@@ -320,14 +320,15 @@ struct SplineFactory {
       this->meta_.n += 1;
     }
 
-    void DeleteMinKnot() {
+    bool DeleteMinKnot() {
       // 删除第一个控制点
-      this->pstore_->DeleteFrontParameter();
+      if (this->pstore_->DeleteFrontParameter() == false) return false;
       // 更新 t0
       this->meta_.t0 += this->meta_.dt;
       // 更新控制点数目
       this->meta_.n -= 1;
-      std::cout << "pstore_->size() = " << pstore_->Size() << " this->meta_.n = " << this->meta_.n << std::endl;
+      // std::cout << "pstore_->size() = " << this->pstore_->Size() << " this->meta_.n = " << this->meta_.n << std::endl;
+      return true;
     }
 
     // Allow the owning Spline Entity to access parameters
@@ -394,11 +395,22 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
       std::cout << "in spline_base : t = " << t << " > MaxTime = " << this->MaxTime() << std::endl;
       return false;
     }
-    std::cout << "in spline_base : dt = " << this->dt() << " t0 = " << this->t0() << " t = " << t << std::endl;
+    // std::cout << "in spline_base : dt = " << this->dt() << " t0 = " << this->t0() << " t = " << t << std::endl;
     while (this->t0() + this->dt() <= t) {
-      segment_entity_->DeleteMinKnot();
-      std::cout << "in spline_base : t0 = " << this->t0() << std::endl;
+      if (segment_entity_->DeleteMinKnot() == false) return false;
+      // std::cout << "in spline_base : t0 = " << this->t0() << std::endl;
     }
+    return true;
+  }
+
+  void LockContralPoint(int lockIdx, int num) {
+    lock_some_contral_point_ = true;
+    lock_idx_ = lockIdx;
+    lock_number_ = num;
+  }
+
+  void unLockContralPoint() {
+    lock_some_contral_point_ = false;
   }
 
   bool SetContralPoint(double t, const ControlPointType& fill_value) {
@@ -467,6 +479,10 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
 
         if (this->IsLocked())
           problem.SetParameterBlockConstant(pi.data);
+        
+        if (lock_some_contral_point_ && i >= lock_idx_ && i < lock_idx_ + lock_number_) {
+          problem.SetParameterBlockConstant(pi.data);
+        }
 
         current_segment_meta.n += 1;
       }
@@ -478,6 +494,9 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
  protected:
   std::shared_ptr<SegmentType> segment_entity_;
   std::unique_ptr<ceres::LocalParameterization> control_point_parameterization_;
+  bool lock_some_contral_point_ = false;
+  int lock_idx_ = 0; // 要固定的控制点序号
+  int lock_number_ = 0; // 要固定的控制点数目
 };
 
 } // namespace internal

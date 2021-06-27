@@ -30,7 +30,8 @@ class DynamicParameterStore : public ParameterStore<T> {
   }
 
   // 删除第一个控制点
-  bool DeleteFrontParameter() {
+  bool DeleteFrontParameter() override {
+    if (parameters_.size() == 0) return false;
     delete[] parameters_.at(0).data;
     parameters_.erase(parameters_.begin());
     return true;
