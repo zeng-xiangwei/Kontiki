@@ -15,18 +15,32 @@ namespace measurements {
 template<typename LiDARModel>
 class LiDARPivotPointPlaneMeasurement {
 public:
-	LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
-		                            	double pivot_time, double timestamp, double huber_loss, double weight)
-			: lidar_(lidar), curr_point_(curr_point), coeff_(coeff), pivot_time_(pivot_time), 
+	// LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
+	// 	                            	double pivot_time, double timestamp, double huber_loss, double weight)
+	// 		: lidar_(lidar), curr_point_(curr_point), coeff_(coeff), pivot_time_(pivot_time), 
+	// 			timestamp_(timestamp), loss_function_(huber_loss), weight_(weight) {}
+
+  // LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
+	// 					          						double pivot_time, double timestamp, double huber_loss)
+  //     : LiDARPivotPointPlaneMeasurement(lidar, curr_point, coeff, pivot_time, timestamp, huber_loss, 1.0) {}
+
+  // LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
+	// 					          						double pivot_time, double timestamp)
+  //     : LiDARPivotPointPlaneMeasurement(lidar, curr_point, coeff, pivot_time, timestamp, 5.) {}
+
+
+  LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
+		                            	Eigen::Vector3d &pivot_pos, Eigen::Quaterniond &pivot_rot, double timestamp, double huber_loss, double weight)
+			: lidar_(lidar), curr_point_(curr_point), coeff_(coeff), pivot_pos_(pivot_pos), pivot_rot_(pivot_rot),
 				timestamp_(timestamp), loss_function_(huber_loss), weight_(weight) {}
 
   LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
-						          						double pivot_time, double timestamp, double huber_loss)
-      : LiDARPivotPointPlaneMeasurement(lidar, curr_point, coeff, pivot_time, timestamp, huber_loss, 1.0) {}
+						          						Eigen::Vector3d &pivot_pos, Eigen::Quaterniond &pivot_rot, double timestamp, double huber_loss)
+      : LiDARPivotPointPlaneMeasurement(lidar, curr_point, coeff, pivot_pos, pivot_rot, timestamp, huber_loss, 1.0) {}
 
   LiDARPivotPointPlaneMeasurement(std::shared_ptr<LiDARModel> lidar, Eigen::Vector3d &curr_point, Eigen::Vector4d &coeff,
-						          						double pivot_time, double timestamp)
-      : LiDARPivotPointPlaneMeasurement(lidar, curr_point, coeff, pivot_time, timestamp, 5.) {}
+						          						Eigen::Vector3d &pivot_pos, Eigen::Quaterniond &pivot_rot, double timestamp)
+      : LiDARPivotPointPlaneMeasurement(lidar, curr_point, coeff, pivot_pos, pivot_rot, timestamp, 5.) {}
 
   // ~LiDARPivotPointPlaneMeasurement() {std::cout << "decontruct LiDARPivotPointPlaneMeasurement\n\n";}
 
@@ -36,7 +50,9 @@ public:
     int flags = trajectories::EvaluationFlags::EvalPosition | trajectories::EvaluationFlags::EvalOrientation;
 
 		// 将当前激光系的点云转换到世界系
-		auto T_IptoG = trajectory.Evaluate(T(pivot_time_), flags);
+		// auto T_IptoG = trajectory.Evaluate(T(pivot_time_), flags);
+    const Eigen::Quaternion<T> q_IptoG = pivot_rot_.cast<T>();
+    Eigen::Matrix<T, 3, 1> p_IpinG = pivot_pos_.cast<T>();
     auto T_IktoG = trajectory.Evaluate(T(timestamp_), flags);
 
     const Eigen::Matrix<T, 3, 1> p_LinI = lidar.relative_position();
@@ -45,7 +61,8 @@ public:
     Eigen::Matrix<T, 3, 1> p_Lk = curr_point_.cast<T>();
     Eigen::Matrix<T, 3, 1> p_I = q_LtoI * p_Lk + p_LinI;
 
-    Eigen::Matrix<T, 3, 1> p_temp = T_IptoG->orientation.conjugate()*(T_IktoG->orientation * p_I + T_IktoG->position - T_IptoG->position);
+    // Eigen::Matrix<T, 3, 1> p_temp = T_IptoG->orientation.conjugate()*(T_IktoG->orientation * p_I + T_IktoG->position - T_IptoG->position);
+    Eigen::Matrix<T, 3, 1> p_temp = q_IptoG.conjugate()*(T_IktoG->orientation * p_I + T_IktoG->position - p_IpinG);
     Eigen::Matrix<T, 3, 1> p_M = q_LtoI.conjugate() * (p_temp - p_LinI);
 
 		Eigen::Matrix<T, 3, 1> norm = coeff_.cast<T>().head(3);
@@ -64,8 +81,9 @@ public:
 
 
 std::shared_ptr<LiDARModel> lidar_;
-Eigen::Vector3d curr_point_;
+Eigen::Vector3d curr_point_, pivot_pos_;
 Eigen::Vector4d coeff_;
+Eigen::Quaterniond pivot_rot_;  // 注意是 pivot 时刻下 imu 的位姿
 double pivot_time_, timestamp_, weight_;
 static int index;
 int selfIndex;
@@ -121,19 +139,19 @@ protected:
           tmax = timestamp_ + this->lidar_->max_time_offset();
       }
 
-			double pivot_min_time, pivot_max_time;
-      if(this->lidar_->TimeOffsetIsLocked()) {
-          pivot_min_time = pivot_time_;
-          pivot_max_time = pivot_time_;
-      }
-      else {
-          pivot_min_time = pivot_time_ - this->lidar_->max_time_offset();
-          pivot_max_time = pivot_time_ + this->lidar_->max_time_offset();
-      }
+			// double pivot_min_time, pivot_max_time;
+      // if(this->lidar_->TimeOffsetIsLocked()) {
+      //     pivot_min_time = pivot_time_;
+      //     pivot_max_time = pivot_time_;
+      // }
+      // else {
+      //     pivot_min_time = pivot_time_ - this->lidar_->max_time_offset();
+      //     pivot_max_time = pivot_time_ + this->lidar_->max_time_offset();
+      // }
 
       /// A.1 先将轨迹参数添加到parameters中 (control points)
       estimator.AddTrajectoryForTimes({
-																				{pivot_min_time,pivot_max_time},
+																				// {pivot_min_time,pivot_max_time},
 																				{tmin, tmax}
 																			},
                                       residual->trajectory_meta,
@@ -152,7 +170,7 @@ protected:
       /// A.2 再将lidar传感器的参数添加到parameters中 (relative pose and timeoffset and so on ..(if have))
       lidar_->AddToProblem(estimator.problem(), 
 													{
-														{pivot_min_time,pivot_max_time},
+														// {pivot_min_time,pivot_max_time},
 														{tmin, tmax}
 													},
                            residual->lidar_meta, parameters);

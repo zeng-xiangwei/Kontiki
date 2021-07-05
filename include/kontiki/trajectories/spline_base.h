@@ -413,6 +413,24 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
     lock_some_contral_point_ = false;
   }
 
+  // 打印时间 t 对应的4个控制点
+  void printContralPointWithTime(double t) {
+    // 找到该时间对应的第一个控制点序号
+    int i1;
+    double u_notused;
+    segment_entity_->CalculateIndexAndInterpolationAmount(t, i1, u_notused);
+    for (int i=i1; i < (i1 + 4); ++i) {
+      auto pi = segment_entity_->ControlPoint(i);
+      std::cout << "typeid.name = " << typeid(pi).name() << " index = " << i << " value = " << pi.x() << ", " << pi.y() << ", " << pi.z() << std::endl;
+      if (typeid(pi) == typeid(Eigen::Vector3d()) || typeid(pi) == typeid(Eigen::Vector3f())) {
+        std::cout << "index = " << i << " R3 value = " << pi.x() << ", " << pi.y() << ", " << pi.z() << std::endl;
+      } else if (typeid(pi) == typeid(Eigen::Quaterniond()) || typeid(pi) == typeid(Eigen::Quaternionf())) {
+        double w = sqrt(1.0 - pow(pi.x(), 2) - pow(pi.x(), 2) - pow(pi.x(), 2));
+        std::cout << "index = " << i << " So3 value = " << pi.x() << ", " << pi.y() << ", " << pi.z() << ", " << w << std::endl;
+      }
+    }
+  }
+
   bool SetContralPoint(double t, const ControlPointType& fill_value) {
     // 找到该时间对应的第一个控制点序号
     int i1;
