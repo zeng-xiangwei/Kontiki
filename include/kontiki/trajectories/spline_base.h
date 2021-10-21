@@ -195,6 +195,11 @@ class SplineView : public TrajectoryView<T, MetaType> {
         if ((t_temp >= seg->MinTime()) && (t_temp < seg->MaxTime())) {
           return seg->Evaluate(t_temp, flags);
         }
+        t_temp = t + T(0.00001);
+        if ((t_temp >= seg->MinTime()) && (t_temp < seg->MaxTime())) {
+          // std::cout << "second if\n";
+          return seg->Evaluate(t_temp, flags);
+        }
       }
     }
 
