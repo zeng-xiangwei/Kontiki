@@ -416,6 +416,7 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
 
   void unLockContralPoint() {
     lock_some_contral_point_ = false;
+    lock_number_ = 0;
   }
 
   // 打印时间 t 对应的4个控制点
