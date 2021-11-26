@@ -454,6 +454,11 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
     return true;
   }
 
+  bool SetContralPointAt(int i, const ControlPointType& fill_value) {
+    segment_entity_->SetContralPoint(i, fill_value);
+    return true;
+  }
+
   // 为最后一个控制点赋值
   bool SetEndContralPoint(const ControlPointType& fill_value) {
     segment_entity_->SetContralPoint(segment_entity_->NumKnots() - 1, fill_value);
@@ -464,6 +469,10 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
   // 获取最后一个控制点的值
   ControlPointType GetEndContralPoint() {
     return segment_entity_->ControlPoint(segment_entity_->NumKnots() - 1);
+  }
+
+  ControlPointType GetContralPointaAt(int i) {
+    return segment_entity_->ControlPoint(i);
   }
 
   void AddToProblem(ceres::Problem &problem,
