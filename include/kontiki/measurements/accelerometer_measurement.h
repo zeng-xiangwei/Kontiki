@@ -109,7 +109,10 @@ class AccelerometerMeasurement {
 
     // Add measurement
     cost_function->SetNumResiduals(3);
+    ceres::internal::ResidualBlock *res_id = 
     estimator.problem().AddResidualBlock(cost_function, nullptr, entity::ParameterInfo<double>::ToParameterBlocks(parameter_info));
+
+    estimator.res_ids.push_back(res_id);
   }
 
   // TrajectoryEstimator must be a friend to access protected members

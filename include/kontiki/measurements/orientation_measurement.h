@@ -29,6 +29,9 @@ class OrientationMeasurement {
   template<typename TrajectoryModel, typename T>
   T Error(const type::Trajectory<TrajectoryModel, T> &trajectory) const {
     Eigen::Quaternion<T> qhat = Measure<TrajectoryModel, T>(trajectory);
+    // DLOG(INFO) << "qhat : " << qhat.coeffs().transpose();
+    // DLOG(INFO) << "q : " << q.coeffs().transpose();
+    // DLOG(INFO) << "q.cast<T>().angularDistance(qhat) : " << q.cast<T>().angularDistance(qhat);
     return T(weight) * q.cast<T>().angularDistance(qhat);
   }
 

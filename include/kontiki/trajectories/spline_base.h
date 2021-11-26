@@ -466,6 +466,10 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
     return segment_entity_->ControlPoint(segment_entity_->NumKnots() - 1);
   }
 
+  ControlPointType GetContralPointaAt(int i) {
+    return segment_entity_->ControlPoint(i);
+  }
+
   void AddToProblem(ceres::Problem &problem,
                     time_init_t times,
                     SplineMeta &meta,
@@ -519,6 +523,7 @@ class SplineEntity : public TrajectoryEntity<SplineFactory<SegmentViewTemplate>:
   std::shared_ptr<SegmentType> segment_entity_;
   std::unique_ptr<ceres::LocalParameterization> control_point_parameterization_;
   bool lock_some_contral_point_ = false;
+public:
   int lock_idx_ = 0; // 要固定的控制点序号
   int lock_number_ = 0; // 要固定的控制点数目
 };

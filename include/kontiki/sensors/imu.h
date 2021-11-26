@@ -22,7 +22,7 @@ struct ImuMeta : public SensorMeta {
   }
 };
 
-static const double STANDARD_GRAVITY = 9.805;
+static const double STANDARD_GRAVITY = -9.805;
 
 // Base Imu view using CRTP to access the correct Gyroscope()/Accelerometer() methods
 // All IMU views must inherit from this one directly, and not through subclasses.

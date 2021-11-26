@@ -107,6 +107,12 @@ class ConstantBiasImuEntity : public BasicImuEntity<ViewTemplate, MetaType, Stor
 
     auto p_ab = this->pstore_->Parameter(this->PARAM_ABIAS);
     problem.AddParameterBlock(p_ab.data, p_ab.size, p_ab.parameterization);
+    problem.SetParameterLowerBound(p_ab.data, 0, -0.1);
+    problem.SetParameterUpperBound(p_ab.data, 0, 0.1);
+    problem.SetParameterLowerBound(p_ab.data, 1, -0.1);
+    problem.SetParameterUpperBound(p_ab.data, 1, 0.1);
+    problem.SetParameterLowerBound(p_ab.data, 2, -0.1);
+    problem.SetParameterUpperBound(p_ab.data, 2, 0.1);
     parameters.push_back(p_ab);
 
     if (acc_bias_locked_)
@@ -114,6 +120,12 @@ class ConstantBiasImuEntity : public BasicImuEntity<ViewTemplate, MetaType, Stor
 
     auto p_gb = this->pstore_->Parameter(this->PARAM_GBIAS);
     problem.AddParameterBlock(p_gb.data, p_gb.size, p_gb.parameterization);
+    problem.SetParameterLowerBound(p_gb.data, 0, -0.1);
+    problem.SetParameterUpperBound(p_gb.data, 0, 0.1);
+    problem.SetParameterLowerBound(p_gb.data, 1, -0.1);
+    problem.SetParameterUpperBound(p_gb.data, 1, 0.1);
+    problem.SetParameterLowerBound(p_gb.data, 2, -0.1);
+    problem.SetParameterUpperBound(p_gb.data, 2, 0.1);
     parameters.push_back(p_gb);
 
     if (gyro_bias_locked_)

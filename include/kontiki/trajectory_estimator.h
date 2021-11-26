@@ -40,9 +40,9 @@ class TrajectoryEstimator {
 
     //options.minimizer_type = ceres::TRUST_REGION;
     //options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
-    //options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+    options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
 
-    options.linear_solver_type = ceres::SPARSE_SCHUR;
+    options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = progress;
 
     if (num_threads < 1) {
@@ -81,7 +81,33 @@ class TrajectoryEstimator {
                              std::vector<entity::ParameterInfo<double>> &parameter_info) {
     CheckTimeSpans(times);
     trajectory_->AddToProblem(problem_, times, meta, parameter_info);
+    for (auto &pa : parameter_info) {
+      para_ids.push_back(pa.data);
+    }
     return true;
+  }
+
+  double evaluateResidual() {
+    ceres::Problem::EvaluateOptions e_option;
+    e_option.parameter_blocks = para_ids;
+    e_option.residual_blocks = res_ids;
+    double cost;
+    problem_.Evaluate(e_option, &cost, NULL, NULL, NULL);
+    return cost;
+  }
+
+  double evaluateResidual(std::vector<ceres::internal::ResidualBlock *> &res) {
+    ceres::Problem::EvaluateOptions e_option;
+    e_option.parameter_blocks = para_ids;
+    e_option.residual_blocks = res;
+    double cost;
+    problem_.Evaluate(e_option, &cost, NULL, NULL, NULL);
+    return cost;
+  }
+
+  void clearResidual() {
+    para_ids.clear();
+    res_ids.clear();
   }
 
   void AddCallback(std::unique_ptr<ceres::IterationCallback> callback, bool needs_state=false) {
@@ -131,6 +157,10 @@ class TrajectoryEstimator {
   ceres::Problem problem_;
   std::vector<std::unique_ptr<ceres::IterationCallback>> callbacks_;
   bool callback_needs_state_;
+
+public:
+  std::vector<double *> para_ids;
+  std::vector<ceres::internal::ResidualBlock *> res_ids;
 };
 
 } // namespace kontiki

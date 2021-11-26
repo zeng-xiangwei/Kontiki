@@ -38,8 +38,13 @@ public:
     auto T_IktoG = trajectory.Evaluate(T(timestamp_), flags);
 
 		// 将当前激光系的点云转换到世界系
+    const Eigen::Matrix<T, 3, 1> p_LinI = lidar.relative_position();
+    const Eigen::Quaternion<T> q_LtoI = lidar.relative_orientation();
+    // 先转到 IMU 系，再转到世界系
     Eigen::Matrix<T, 3, 1> p_Lk = curr_point_.cast<T>();
-    Eigen::Matrix<T, 3, 1> p_G = T_IktoG->orientation * p_Lk + T_IktoG->position;
+    Eigen::Matrix<T, 3, 1> p_I = q_LtoI * p_Lk + p_LinI;
+
+    Eigen::Matrix<T, 3, 1> p_G = T_IktoG->orientation * p_I + T_IktoG->position;
 
 		Eigen::Matrix<T, 3, 1> norm = plane_unit_norm_.cast<T>();
 
@@ -144,9 +149,12 @@ protected:
       // Give residual block to Problem
       std::vector<double*> params = entity::ParameterInfo<double>::ToParameterBlocks(parameters);
 
+      ceres::internal::ResidualBlock *res_id = 
       estimator.problem().AddResidualBlock(cost_function,
                                            &loss_function_,
                                            params);
+
+      estimator.res_ids.push_back(res_id);
 //      estimator.problem().AddResidualBlock(cost_function,
 //                                           nullptr,
 //                                           params);
