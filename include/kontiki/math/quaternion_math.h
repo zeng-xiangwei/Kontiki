@@ -42,18 +42,21 @@ Eigen::Quaternion <T> logq(const Eigen::Quaternion <T> &q) {
   // equivalent to exapnding around phi=0 since phi encodes the half-angle of the actual rotation.
   // The expansion is phi/sin(phi) = 1 + phi^2/6 + ...
   T k;
+  Eigen::Quaternion<T> out;
   auto v_squared = q.vec().squaredNorm();
   if (v_squared > eps) {
     T vn = ceres::sqrt(v_squared);
-    k = ceres::atan2(vn, q.w()) / vn;
+    // k = ceres::atan2(vn, q.w()) / vn;
+    k = ceres::atan2(vn, ceres::abs(q.w())) / vn;
+    out.vec() = q.vec() * k;
   }
   else {
     k = T(1.0); // First term of the Taylor expansion
+    out.vec() = Eigen::Matrix<T, 3, 1>().setZero();
   }
 
-  Eigen::Quaternion<T> out;
   out.w() = T(0);
-  out.vec() = q.vec() * k;
+  
 
   return out;
 }
