@@ -46,13 +46,14 @@ Eigen::Quaternion <T> logq(const Eigen::Quaternion <T> &q) {
   auto v_squared = q.vec().squaredNorm();
   if (v_squared > eps) {
     T vn = ceres::sqrt(v_squared);
-    // k = ceres::atan2(vn, q.w()) / vn;
-    k = ceres::atan2(vn, ceres::abs(q.w())) / vn;
+    k = ceres::atan2(vn, q.w()) / vn;
+    // k = ceres::atan2(vn, ceres::abs(q.w())) / vn;
     out.vec() = q.vec() * k;
   }
   else {
     k = T(1.0); // First term of the Taylor expansion
-    out.vec() = Eigen::Matrix<T, 3, 1>().setZero();
+    // out.vec() = Eigen::Matrix<T, 3, 1>().setZero();
+    out.vec() = q.vec();
   }
 
   out.w() = T(0);

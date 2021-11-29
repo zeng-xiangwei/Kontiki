@@ -22,7 +22,7 @@ struct ImuMeta : public SensorMeta {
   }
 };
 
-static const double STANDARD_GRAVITY = -9.805;
+static const double STANDARD_GRAVITY = 9.805;
 
 // Base Imu view using CRTP to access the correct Gyroscope()/Accelerometer() methods
 // All IMU views must inherit from this one directly, and not through subclasses.
@@ -94,7 +94,8 @@ class ImuView : public SensorView<T, MetaType> {
   template<typename TrajectoryModel>
   Vector3 StandardAccelerometer(const type::Trajectory<TrajectoryModel, T> &trajectory, T t) const {
     auto result = trajectory.Evaluate(t + this->time_offset(), Flags::EvalOrientation | Flags::EvalAcceleration);
-    return result->orientation.conjugate() * (result->acceleration + this->refined_gravity());
+    // return result->orientation.conjugate() * (result->acceleration + this->refined_gravity());
+    return result->orientation.conjugate() * (result->acceleration - this->refined_gravity());
    // return result->orientation.conjugate() * (result->acceleration + this->relative_orientation() * Constants<T>::Gravity);
 
 
