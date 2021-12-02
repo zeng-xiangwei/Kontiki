@@ -34,6 +34,10 @@ class ConstantBiasImuView : public ImuView<T, MetaType, ConstantBiasImuView<T, M
     return Vector3Map(this->pstore_->ParameterData(PARAM_ABIAS));
   }
 
+  T* accelerometer_bias(int) const {
+    return this->pstore_->ParameterData(PARAM_ABIAS);
+  }
+
   void set_accelerometer_bias(const Vector3& b) {
     Vector3Map bmap(this->pstore_->ParameterData(PARAM_ABIAS));
     bmap = b;
@@ -41,6 +45,10 @@ class ConstantBiasImuView : public ImuView<T, MetaType, ConstantBiasImuView<T, M
 
   Vector3Map gyroscope_bias() const {
     return Vector3Map(this->pstore_->ParameterData(PARAM_GBIAS));
+  }
+
+  T* gyroscope_bias(int) const {
+    return this->pstore_->ParameterData(PARAM_GBIAS);
   }
 
   void set_gyroscope_bias(const Vector3 &b) {
