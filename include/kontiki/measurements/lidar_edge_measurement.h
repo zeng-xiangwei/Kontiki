@@ -64,6 +64,12 @@ public:
     return T(weight_) * (dist);
   }
 
+  template<typename TrajectoryModel>
+  Eigen::Matrix<double, 3, 1> Point2Line(const type::Trajectory<TrajectoryModel, double> &trajectory) const {
+    Eigen::Matrix<double, 3, 1> dist = calculatePoint2Line<TrajectoryModel, double>(trajectory, *lidar_);
+    return dist;
+  }
+
 
 std::shared_ptr<LiDARModel> lidar_;
 Eigen::Vector3d curr_point_, last_point_a_, last_point_b_;
