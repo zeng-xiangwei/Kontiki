@@ -40,11 +40,11 @@ class TrajectoryEstimator {
 
     //options.minimizer_type = ceres::TRUST_REGION;
     //options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
-    // options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+    options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
 
-    // options.linear_solver_type = ceres::DENSE_QR;
-    options.linear_solver_type = ceres::DENSE_SCHUR;
-    options.trust_region_strategy_type = ceres::DOGLEG;
+    options.linear_solver_type = ceres::DENSE_QR;
+    // options.linear_solver_type = ceres::DENSE_SCHUR;
+    // options.trust_region_strategy_type = ceres::DOGLEG;
     options.minimizer_progress_to_stdout = progress;
     // options.function_tolerance = 1e-16;
     // options.gradient_tolerance = 1e-16;

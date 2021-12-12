@@ -30,6 +30,7 @@ template<typename T, typename MetaType, typename Derived>
 class ImuView : public SensorView<T, MetaType> {
   using Vector3 = Eigen::Matrix<T, 3, 1>;
   using Matrix3 = Eigen::Matrix<T, 3, 3>;
+  using Vector3Map = Eigen::Map<Vector3>;
   using Flags = trajectories::EvaluationFlags;
  protected:
     const size_t PARAM_GRAVITY_ROLL = 3;
@@ -79,6 +80,14 @@ class ImuView : public SensorView<T, MetaType> {
   template<typename TrajectoryModel>
   Vector3 Gyroscope(const type::Trajectory<TrajectoryModel, T> &trajectory, T t) const {
     return static_cast<const Derived*>(this)->template Gyroscope<TrajectoryModel>(trajectory, t);
+  }
+
+  Vector3Map accelerometer_bias() const {
+    return static_cast<const Derived*>(this)->template accelerometer_bias();
+  }
+
+  Vector3Map gyroscope_bias() const {
+    return static_cast<const Derived*>(this)->template gyroscope_bias();
   }
 
  protected:
